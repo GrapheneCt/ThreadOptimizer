@@ -690,7 +690,7 @@ int main(void)
 	}
 	modid = _vshKernelSearchModuleByName("ioplus", &unk);
 	if (modid < 0) {
-		showMessage("Error: ioplus plugin not found.\n\nPlease install it and try again.");
+		showMessage("Error: ioPlus plugin not found.\n\nPlease install it and try again.");
 		while (sceMsgDialogGetStatus() != 2)
 			cdlgDraw();
 		sceMsgDialogTerm();

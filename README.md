@@ -2,4 +2,4 @@
 
 Plugin + config application for PS Vita that allows to adjust thread parameters to achive maximum performance.
 
-More information here:
+More information here: https://forum.devchroma.nl/index.php/topic,210.0.html

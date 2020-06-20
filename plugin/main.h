@@ -4,7 +4,7 @@
 
 #pragma once
 
-#define DEBUG_ON
+//#define DEBUG_ON
 
 #ifdef DEBUG_ON
 #  define DEBUG_PRINT(...) sceClibPrintf(__VA_ARGS__)

@@ -13,8 +13,8 @@
 
 #include "main.h"
 
-static tai_hook_ref_t g_hook_ref[2];
-static SceUID g_hook[2];
+static tai_hook_ref_t g_hook_ref[5];
+static SceUID g_hook[5];
 
 static char g_titleid[10];
 static char g_snapshot_path[46];
@@ -220,6 +220,32 @@ int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf* pParam, SceDisplaySe
 	return TAI_CONTINUE(int, g_hook_ref[1], pParam, sync);
 }
 
+SceUID sceKernelLoadStartModule_patched(const char *path, SceSize args, void *argp, int flags, SceKernelLMOption *option, int* status)
+{
+	int ret = TAI_CONTINUE(SceUID, g_hook_ref[2], path, args, argp, flags, option, status);
+
+	if (!sceClibStrncmp(path, "app0:/Media/Modules/pthread.suprx", 33)) {
+		/* Thread hooks */
+
+		if (snapshot_present) {
+			g_hook[3] = taiHookFunctionImport(
+				&g_hook_ref[3],
+				"PTHREAD_PRX",
+				TAI_ANY_LIBRARY,
+				0xC5C11EE7,
+				sceKernelCreateThreadForUser_patched_read);
+		}
+		else {
+			g_hook[3] = taiHookFunctionImport(
+				&g_hook_ref[3],
+				"PTHREAD_PRX",
+				TAI_ANY_LIBRARY,
+				0xC5C11EE7,
+				sceKernelCreateThreadForUser_patched_write);
+		}
+	}
+	return ret;
+}
 
 void _start() __attribute__((weak, alias("module_start")));
 int module_start(SceSize argc, const void *args)
@@ -275,6 +301,34 @@ int module_start(SceSize argc, const void *args)
 			sceKernelCreateThreadForUser_patched_write);
 	}
 
+	/* PTHREAD_PRX (unity games) */
+
+	g_hook[2] = taiHookFunctionImport(
+		&g_hook_ref[2],
+		TAI_MAIN_MODULE,
+		TAI_ANY_LIBRARY,
+		0x2DCC4AFA,
+		sceKernelLoadStartModule_patched);
+
+	/* SceLibc (??? games) */
+
+	if (snapshot_present) {
+		g_hook[4] = taiHookFunctionImport(
+			&g_hook_ref[4],
+			"SceLibc",
+			TAI_ANY_LIBRARY,
+			0xC5C11EE7,
+			sceKernelCreateThreadForUser_patched_read);
+	}
+	else {
+		g_hook[4] = taiHookFunctionImport(
+			&g_hook_ref[4],
+			"SceLibc",
+			TAI_ANY_LIBRARY,
+			0xC5C11EE7,
+			sceKernelCreateThreadForUser_patched_write);
+	}
+
 	/*g_hook[1] = taiHookFunctionImport(
 		&g_hook_ref[1],
 		TAI_MAIN_MODULE,
@@ -307,7 +361,7 @@ int module_start(SceSize argc, const void *args)
 
 int module_stop(SceSize argc, const void *args)
 {
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 5; i++)
 		if (g_hook[i] >= 0) taiHookRelease(g_hook[i], g_hook_ref[i]);
 	return SCE_KERNEL_STOP_SUCCESS;
 }

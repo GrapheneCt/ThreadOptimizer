@@ -13,13 +13,13 @@
 
 #include "main.h"
 
-static tai_hook_ref_t g_hook_ref[10];
-static SceUID g_hook[10];
+static tai_hook_ref_t g_hook_ref[2];
+static SceUID g_hook[2];
 
 static char g_titleid[10];
 static char g_snapshot_path[46];
 static SceBool snapshot_present = SCE_FALSE;
-static unsigned int thread_count = 0;
+static unsigned int thread_count = 0, frames = 0;
 static SceCtrlData data;
 
 static ThreadOptimizerSnapshot snapshot;
@@ -185,7 +185,7 @@ int deleteFile(void)
 
 /* Check input */
 
-int checkInput(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, int count)
+void checkInput(void)
 {
 	sceClibMemset(&data, 0, sizeof(SceCtrlData));
 	sceCtrlPeekBufferPositive2(0, &data, 1);
@@ -206,31 +206,20 @@ int checkInput(int port, tai_hook_ref_t ref_hook, SceCtrlData *ctrl, int count)
 		deleteFile();
 		sendNotification(buffer, 67);
 	}
-
-	return TAI_CONTINUE(int, ref_hook, port, ctrl, count);
 }
 
-/* Controls */
-
-int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *pad_data, int count) 
+int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf* pParam, SceDisplaySetBufSync sync) 
 {
-	return checkInput(port, g_hook_ref[1], pad_data, count);
+	if (frames == 60) {
+		frames = 0;
+		checkInput();
+	}
+
+	frames++;
+
+	return TAI_CONTINUE(int, g_hook_ref[1], pParam, sync);
 }
 
-int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *pad_data, int count)
-{
-	return checkInput(port, g_hook_ref[2], pad_data, count);
-}
-
-int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *pad_data, int count)
-{
-	return checkInput(port, g_hook_ref[3], pad_data, count);
-}
-
-int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *pad_data, int count)
-{
-	return checkInput(port, g_hook_ref[4], pad_data, count);
-}
 
 void _start() __attribute__((weak, alias("module_start")));
 int module_start(SceSize argc, const void *args)
@@ -306,27 +295,9 @@ int module_start(SceSize argc, const void *args)
 		g_hook[1] = taiHookFunctionImport(
 			&g_hook_ref[1],
 			TAI_MAIN_MODULE,
-			TAI_ANY_LIBRARY,
-			0xA9C3CED6,
-			sceCtrlPeekBufferPositive_patched);
-		g_hook[2] = taiHookFunctionImport(
-			&g_hook_ref[2],
-			TAI_MAIN_MODULE,
-			TAI_ANY_LIBRARY,
-			0x104ED1A7,
-			sceCtrlPeekBufferNegative_patched);
-		g_hook[3] = taiHookFunctionImport(
-			&g_hook_ref[3],
-			TAI_MAIN_MODULE,
-			TAI_ANY_LIBRARY,
-			0x67E7AB83,
-			sceCtrlReadBufferPositive_patched);
-		g_hook[4] = taiHookFunctionImport(
-			&g_hook_ref[4],
-			TAI_MAIN_MODULE,
-			TAI_ANY_LIBRARY,
-			0x15F96FB0,
-			sceCtrlReadBufferNegative_patched);
+			TAI_ANY_LIBRARY, //SceDisplayUser
+			0x7A410B64, //sceDisplaySetFrameBuf
+			sceDisplaySetFrameBuf_patched);
 	}
 
 	DEBUG_PRINT("ThreadOptimizer READY\n");
@@ -336,7 +307,7 @@ int module_start(SceSize argc, const void *args)
 
 int module_stop(SceSize argc, const void *args)
 {
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 2; i++)
 		if (g_hook[i] >= 0) taiHookRelease(g_hook[i], g_hook_ref[i]);
 	return SCE_KERNEL_STOP_SUCCESS;
 }

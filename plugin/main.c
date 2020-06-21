@@ -89,9 +89,24 @@ SceUID sceKernelCreateThreadForUser_patched_read(const char* name,
 	int new_priority = initPriority;
 	int new_affinity = cpuAffinityMask;
 
+	/* Calculate crc16 */
+
+	unsigned short crc16_res = 0;
+	unsigned char buffer[49];
+	sceClibMemset(&buffer, 0, 49);
+
+	sceClibMemcpy(&buffer, name, sceClibStrnlen(name, MAX_NAME_LEN));
+	sceClibMemcpy(&buffer[37], &entry, 4);
+	sceClibMemcpy(&buffer[41], &initPriority, 4);
+	sceClibMemcpy(&buffer[45], &cpuAffinityMask, 4);
+	crc16_res = crc16(buffer, 49);
+	DEBUG_PRINT("CRC16: 0x%x\n", crc16_res);
+
 	for (; entry_number < snapshot.thread_count; entry_number++) {
-		if (entry == snapshot.entry[entry_number])
+		if (crc16_res == snapshot.crc16[entry_number]) {
+			DEBUG_PRINT("CRC16: SAVED DETECTED\n");
 			break;
+		}
 	}
 
 	new_priority = snapshot.priority[entry_number];

@@ -57,3 +57,5 @@ typedef struct ThreadOptimizerSnapshot {
 	int priority[MAX_THREADS];
 	int affinity[MAX_THREADS];
 } ThreadOptimizerSnapshot;
+
+int32_t sceKernelAtomicXorAndGet32(int32_t* dst, int32_t val);

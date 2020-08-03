@@ -6,12 +6,12 @@
 #include <math.h>
 #include <psp2/kernel/threadmgr.h> 
 #include <psp2/kernel/sysmem.h> 
+#include <psp2/kernel/processmgr.h>
 #include <psp2/kernel/clib.h> 
 #include <psp2/sysmodule.h>
 #include <psp2/message_dialog.h>
-#include <psp2/io/fcntl.h> 
 #include <psp2/common_dialog.h>
-#include <psp2/io/dirent.h> 
+#include <psp2/kernel/iofilemgr.h> 
 #include <psp2/ctrl.h>
 #include <vita2d_sys.h>
 
@@ -236,16 +236,16 @@ unsigned int drawThreadEdit(unsigned int selection_prev)
 			else if (ONPRESS(SCE_CTRL_CROSS)) {
 				switch (selection) {
 				case 0:
-					snapshot.affinity[selection_prev] ^= SCE_KERNEL_CPU_MASK_USER_0;
+					sceKernelAtomicXorAndGet32(&snapshot.affinity[selection_prev], SCE_KERNEL_CPU_MASK_USER_0);
 					break;
 				case 1:
-					snapshot.affinity[selection_prev] ^= SCE_KERNEL_CPU_MASK_USER_1;
+					sceKernelAtomicXorAndGet32(&snapshot.affinity[selection_prev], SCE_KERNEL_CPU_MASK_USER_1);
 					break;
 				case 2:
-					snapshot.affinity[selection_prev] ^= SCE_KERNEL_CPU_MASK_USER_2;
+					sceKernelAtomicXorAndGet32(&snapshot.affinity[selection_prev], SCE_KERNEL_CPU_MASK_USER_2);
 					break;
 				case 3:
-					snapshot.affinity[selection_prev] ^= SCE_KERNEL_CPU_MASK_USER_3;
+					sceKernelAtomicXorAndGet32(&snapshot.affinity[selection_prev], SCE_KERNEL_CPU_MASK_USER_3);
 					break;
 				}
 			}
@@ -658,7 +658,7 @@ unsigned int drawMainSelect(void)
 	return selection + page_modifier;
 }
 
-int main(void)
+void _start(unsigned int args, void *argp)
 {
 	ScePVoid clibm_base;
 	SceUID clib_heap = sceKernelAllocMemBlock("ClibHeap", SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE, CLIB_HEAP_SIZE, NULL);
@@ -724,6 +724,6 @@ repeat_1:
 	selection = drawThreadEdit(selection);
 	goto repeat_1;
 
-	return 0;
+	sceKernelExitProcess(0);
 }
 

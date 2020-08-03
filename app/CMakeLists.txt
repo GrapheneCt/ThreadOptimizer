@@ -9,12 +9,17 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 endif()
 
 project(ThreadOptimizer)
+
 include("${DOLCESDK}/share/dolce.cmake" REQUIRED)
+
+dolce_gen_libs(SceLibKernel_stubs
+  SceLibKernel.yml
+  LIB SceLibKernel_stub_weak)
 set(VITA_APP_NAME "Thread Optimizer")
-set(VITA_TITLEID  "THRDOPTMA")
-set(VITA_VERSION  "01.00")
+set(VITA_TITLEID  "GRVA00004")
+set(VITA_VERSION  "01.50")
 set(DOLCE_MKSFOEX_FLAGS "${DOLCE_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=0")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format-truncation")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format-truncation -fno-builtin")
 
 link_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -30,6 +35,7 @@ target_link_libraries(${PROJECT_NAME}
 	SceLibKernel_stub
 	SceSysmem_stub
 	SceKernelThreadMgr_stub
+	SceProcessMgr_stub
 	SceAppMgr_stub 
 	ScePvf_stub 
 	SceDisplay_stub 
@@ -41,17 +47,21 @@ target_link_libraries(${PROJECT_NAME}
 	SceJpeg_stub
 	SceLibc_stub
 	SceFios2_stub
+	SceKernelDmacMgr_stub
+	SceDbg_stub
+	SceLibKernel_stub_weak
     )
 	
-#set_target_properties(${PROJECT_NAME}
-#  PROPERTIES LINK_FLAGS "-nostdlib"
-#)
+set_target_properties(${PROJECT_NAME}
+  PROPERTIES LINK_FLAGS "-nostdlib"
+)
 
 dolce_create_self(eboot.bin ${PROJECT_NAME} UNSAFE)
 
 dolce_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} eboot.bin
     VERSION ${VITA_VERSION}
     NAME ${VITA_APP_NAME}
+	CONTENT_ID_NAME THREADOPTIMIZER0
 	FILE sce_sys/icon0.png sce_sys/icon0.png
     FILE sce_sys/pic0.png sce_sys/pic0.png
     FILE sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png

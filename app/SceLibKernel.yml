@@ -1,0 +1,26 @@
+version: 2
+firmware: 3.60
+modules:
+  SceLibKernel:
+    nid: 0xF9C9C52F
+    libraries:
+      SceRtabi:
+        kernel: false
+        nid: 0xA941943F
+        functions:
+          SceRtabi_0D4F0635: 0x0D4F0635
+          SceRtabi_141BC4CE: 0x141BC4CE
+          SceRtabi_21FF67B9: 0x21FF67B9 # variation of SceRtabi_CBDA815C
+          SceRtabi_317B3774: 0x317B3774
+          __aeabi_idivmod: 0x38D62D60 # 32/32 -> 32 signed division
+          SceRtabi_5024AB91: 0x5024AB91
+          SceRtabi_609CA961: 0x609CA961
+          SceRtabi_67104054: 0x67104054 # 32/32 -> 64 signed division
+          SceRtabi_6BB838EF: 0x6BB838EF
+          SceRtabi_6CBB0E84: 0x6CBB0E84
+          SceRtabi_A5DB3A86: 0xA5DB3A86 # variation of SceRtabi_CBDA815C
+          SceRtabi_AA1F1B50: 0xAA1F1B50
+          __aeabi_uidivmod: 0xC33391D1 # ??? 32/32 -> 32 unsigned division
+          SceRtabi_CBDA815C: 0xCBDA815C
+          SceRtabi_CDF7708E: 0xCDF7708E
+          __aeabi_uidiv: 0xFB311F87 # ??? 32/32 -> 32 unsigned division

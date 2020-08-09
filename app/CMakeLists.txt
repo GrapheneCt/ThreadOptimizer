@@ -61,7 +61,7 @@ dolce_create_self(eboot.bin ${PROJECT_NAME} UNSAFE)
 dolce_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} eboot.bin
     VERSION ${VITA_VERSION}
     NAME ${VITA_APP_NAME}
-	CONTENT_ID_NAME THREADOPTIMIZER0
+	CONTENT_ID_LABEL THREADOPTIMIZER0
 	FILE sce_sys/icon0.png sce_sys/icon0.png
     FILE sce_sys/pic0.png sce_sys/pic0.png
     FILE sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
